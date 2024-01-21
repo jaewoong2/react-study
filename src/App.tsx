@@ -6,7 +6,7 @@ import useGetS3Objects from './hooks/useGetS3Objects'
 import usePutS3Image from './hooks/usePutS3Image'
 
 const App = () => {
-  useGetS3Objects()
+  const lists = useGetS3Objects()
   const [title, , onChangeTitle] = useTextInput('')
   const [description, , onChangeDescription] = useTextInput('')
   const { uploadImageToS3 } = usePutS3Image()
@@ -14,6 +14,7 @@ const App = () => {
 
   return (
     <main className="w-full h-full bg-gray-600">
+      {lists?.map((list) => <img src={list} alt={list} key={list} />)}
       <div className="w-full h-full flex justify-center items-center">
         <div className="flex justify-center items-center flex-col p-20 gap-10 border w-fit rounded-xl">
           <div className="font-semibold text-lg w-[350px]">
@@ -80,7 +81,12 @@ const App = () => {
                   id="dropzone-file"
                   type="file"
                   className="hidden"
-                  onChange={(e) => upload(e.target?.files?.[0] ?? null)}
+                  onChange={(e) =>
+                    upload(e.target?.files?.[0] ?? null, [
+                      { Key: 'title', Value: title },
+                      { Key: 'description', Value: description },
+                    ])
+                  }
                 />
               </label>
             </div>

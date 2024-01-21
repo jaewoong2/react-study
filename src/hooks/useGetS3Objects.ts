@@ -1,5 +1,4 @@
-import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3'
 import { useEffect, useState } from 'react'
 
 const client = new S3Client({
@@ -13,31 +12,17 @@ const client = new S3Client({
 const getBuckets = async () => {
   const command = new ListObjectsV2Command({ Bucket: 'react-bucket2' })
   const response = await client.send(command)
-  const urls = await Promise.all(
-    response.Contents?.map(async (item) => {
-      const url = await getSignedUrl(
-        client,
-        new GetObjectCommand({
-          Bucket: 'react-bucket2',
-          Key: item.Key,
-        }),
-        { expiresIn: 3600 }
-      ) // URL expires in 1 hour
-      return url
-    }) ?? []
-  )
-  return urls
-
-  return response
+  return response.Contents?.map(({ Key }) => `https://image.job-bot.site/${Key}`)
 }
 
 const useGetS3Objects = () => {
-  const [state, setState] = useState<unknown>(null)
+  const [state, setState] = useState<string[] | null>(null)
 
   useEffect(() => {
     getBuckets().then((res) => {
-      setState(res)
-      console.log(res)
+      if (res) {
+        setState(res)
+      }
     })
   }, [])
 

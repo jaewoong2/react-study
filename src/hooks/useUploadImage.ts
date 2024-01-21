@@ -1,13 +1,14 @@
+import { Tags } from '@/types'
 import { useState } from 'react'
 
 const useFileUpload = (
-  callback?: (key: string, file: ArrayBuffer | Uint8Array | Blob | string) => void
+  callback?: (key: string, file: ArrayBuffer | Uint8Array | Blob | string, tags?: Tags[]) => void
 ) => {
   const [file, setFile] = useState<File | null | undefined>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const upload = async ($file: File | null) => {
+  const upload = async ($file: File | null, tags?: Tags[]) => {
     setIsUploading(true)
     setFile($file)
     setError(null)
@@ -15,17 +16,13 @@ const useFileUpload = (
       if (!$file) {
         throw new Error('파일이 업로드 되지 않았습니다.')
       }
-      const formData = new FormData()
-      formData.append('file', $file)
-      formData.append('name', $file.name)
       if (callback) {
         if ($file) {
           const reader = new FileReader()
           reader.onload = async (e) => {
             const content = e.target?.result
             if (typeof content === 'string' || content instanceof ArrayBuffer) {
-              callback($file.name, content)
-              console.log($file)
+              callback($file.name, content, tags)
             }
           }
           reader.readAsArrayBuffer($file)

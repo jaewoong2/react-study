@@ -1,6 +1,7 @@
 // useS3Upload.ts
 import { useState } from 'react'
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, PutObjectTaggingCommand } from '@aws-sdk/client-s3'
+import { Tags } from '@/types'
 
 const client = new S3Client({
   region: import.meta.env.VITE_AWS_S3_REGION,
@@ -15,15 +16,28 @@ const usePutS3Image = () => {
     error?: Error
   }>({ status: 'idle' })
 
-  const uploadImageToS3 = async (key: string, file: ArrayBuffer | Uint8Array | Blob | string) => {
+  const uploadImageToS3 = async (
+    key: string,
+    file: ArrayBuffer | Uint8Array | Blob | string,
+    tags?: Tags[]
+  ) => {
     setUploadStatus({ status: 'uploading' })
     try {
-      const command = new PutObjectCommand({
+      const uploadCommand = new PutObjectCommand({
         Bucket: 'react-bucket2',
         Key: key,
         Body: file,
       })
-      await client.send(command)
+      await client.send(uploadCommand)
+
+      const tagCommand = new PutObjectTaggingCommand({
+        Bucket: 'react-bucket2',
+        Key: key,
+        Tagging: { TagSet: tags },
+      })
+
+      await client.send(tagCommand)
+
       setUploadStatus({ status: 'success' })
     } catch (error) {
       if (error instanceof Error) {
